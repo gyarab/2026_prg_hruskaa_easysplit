@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Připojit se – EasySplit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-body p-4">
+                <h2 class="h4">Pozvánka do skupiny</h2>
+                <p class="lead">{{ group.name }}</p>
+                {% if group.description %}<p class="text-muted">{{ group.description }}</p>{% endif %}
+                <p class="small text-muted">Základní měna: {{ group.base_currency }} · Členů: {{ group.memberships.count }}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Připojit se</button>
+                    <a href="{% url 'home' %}" class="btn btn-link">Ne, děkuji</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

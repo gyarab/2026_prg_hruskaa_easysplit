@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} – EasySplit{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="h3 mb-1">{{ group.name }}</h1>
+        {% if group.description %}<p class="text-muted mb-0">{{ group.description }}</p>{% endif %}
+    </div>
+    <span class="badge bg-secondary fs-6">{{ group.base_currency }}</span>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Členové ({{ memberships|length }})</div>
+            <ul class="list-group list-group-flush">
+                {% for m in memberships %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            {{ m.user.get_full_name|default:m.user.username }}
+                            <small class="text-muted">@{{ m.user.username }}</small>
+                            {% if m.role == "owner" %}
+                                <span class="badge bg-warning text-dark ms-1">Správce</span>
+                            {% endif %}
+                        </div>
+                        {% if is_owner and m.user != user %}
+                            <form method="post" action="{% url 'member_remove' group.pk m.pk %}"
+                                  onsubmit="return confirm('Opravdu odebrat tohoto člena?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Odebrat</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold">Výdaje</div>
+            <div class="card-body text-muted">Výdaje přibudou v další fázi.</div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Pozvat další lidi</div>
+            <div class="card-body">
+                <p class="small text-muted">Pošlete tento odkaz. Kdo se přihlásí a otevře ho, může se do skupiny připojit.</p>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="invite-url" value="{{ invite_url }}" readonly>
+                    <button class="btn btn-outline-primary" type="button"
+                            onclick="navigator.clipboard.writeText(document.getElementById('invite-url').value); this.textContent='Zkopírováno';">
+                        Kopírovat
+                    </button>
+                </div>
+                {% if is_owner %}
+                    <form method="post" action="{% url 'group_regenerate_invite' group.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link btn-sm p-0">Vygenerovat nový odkaz</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                {% if is_owner %}
+                    <form method="post" action="{% url 'group_delete' group.pk %}"
+                          onsubmit="return confirm('Opravdu smazat celou skupinu? Akci nelze vrátit.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger w-100">Smazat skupinu</button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'group_leave' group.pk %}"
+                          onsubmit="return confirm('Opravdu opustit skupinu?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">Opustit skupinu</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

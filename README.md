@@ -12,6 +12,7 @@ Ročníková práce – webová aplikace v Djangu pro správu sdílených financ
 - Více měn s automatickým přepočtem (kurzovní API)
 - Generování českých SPD QR kódů
 - Export statistik do CSV a PDF
+- Hesla se ukládají jako hash (PBKDF2 tzv. osolené), niky ne v čisté podobě. Formuláře jsou chráněné CSRF tokenem.
 
 ## Technologie
 Python 3.x, Django 5.x, SQLite (vývoj), Bootstrap 5
@@ -20,13 +21,18 @@ Python 3.x, Django 5.x, SQLite (vývoj), Bootstrap 5
     git clone <url>
     cd splitly
     python -m venv .venv
-    source .venv/bin/activate      # Windows: .venv\Scripts\Activate.ps1
+    source .venv/bin/activate      # bash: .venv\Scripts\activate
     pip install -r requirements.txt
     cp .env.example .env
     python manage.py migrate
     python manage.py runserver
 
 ## Struktura projektu
+
+## Datový model (zatím)
+- User – vlastní model uživatele (AbstractUser)
+- Group – skupina (název, popis, základní měna, pozvánkový token)
+- Membership – vazba uživatel ↔ skupina s rolí (správce / člen)
 
 ## Algoritmus minimalizace transakcí
 

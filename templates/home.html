@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-5 bg-white rounded shadow-sm">
+    <h1 class="display-5">EasySplit</h1>
+    <p class="lead">Spravujte sdílené výdaje ve skupině jednoduše a spravedlivě.</p>
+
+    {% if user.is_authenticated %}
+        <p>Jste přihlášeni jako <strong>{{ user.username }}</strong>. Skupiny přidáme v další fázi.</p>
+    {% else %}
+        <a class="btn btn-primary me-2" href="{% url 'register' %}">Vytvořit účet</a>
+        <a class="btn btn-outline-primary" href="{% url 'login' %}">Přihlásit se</a>
+        <a class="btn btn-primary" href="{% url 'group_list' %}">Moje skupiny</a>
+    {% endif %}
+</div>
+{% endblock %}

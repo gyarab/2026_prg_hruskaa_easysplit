@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Moje skupiny – EasySplit{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Moje skupiny</h1>
+    <a href="{% url 'group_create' %}" class="btn btn-primary">+ Nová skupina</a>
+</div>
+
+{% if groups %}
+    <div class="list-group shadow-sm">
+        {% for group in groups %}
+            <a href="{% url 'group_detail' group.pk %}"
+               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-semibold">{{ group.name }}</div>
+                    {% if group.description %}
+                        <small class="text-muted">{{ group.description|truncatechars:80 }}</small>
+                    {% endif %}
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-secondary">{{ group.base_currency }}</span>
+                    <span class="badge bg-primary">{{ group.memberships.count }} čl.</span>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        Zatím nejste v žádné skupině. Vytvořte novou, nebo se připojte přes pozvánkový odkaz.
+    </div>
+{% endif %}
+{% endblock %}
