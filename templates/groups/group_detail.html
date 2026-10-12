@@ -37,11 +37,31 @@
             </ul>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white fw-semibold">Výdaje</div>
-            <div class="card-body text-muted">Výdaje přibudou v další fázi.</div>
+                <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Výdaje</span>
+                <a href="{% url 'expense_create' group.pk %}" class="btn btn-primary btn-sm">+ Přidat výdaj</a>
+            </div>
+            {% if expenses %}
+                <div class="list-group list-group-flush">
+                    {% for e in expenses %}
+                        <a href="{% url 'expense_detail' group.pk e.pk %}"
+                           class="list-group-item list-group-item-action d-flex justify-content-between">
+                            <div>
+                                <div class="fw-semibold">{{ e.description }}</div>
+                                <small class="text-muted">
+                                    {{ e.date|date:"j. n. Y" }} · zaplatil(a)
+                                    {{ e.paid_by.get_full_name|default:e.paid_by.username }}
+                                </small>
+                            </div>
+                            <div class="fw-semibold text-nowrap">{{ e.amount }} {{ group.base_currency }}</div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card-body text-muted">Zatím žádné výdaje.</div>
+            {% endif %}
         </div>
-    </div>
 
     <div class="col-lg-5">
         <div class="card shadow-sm mb-4">

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} – {{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <a href="{% url 'group_detail' group.pk %}" class="small">← {{ group.name }}</a>
+        <div class="card shadow-sm mt-2">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-4">{{ title }}</h2>
+
+                <form method="post" id="expense-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% include "includes/field.html" with field=form.description %}
+                    <div class="row">
+                        <div class="col-sm-6">{% include "includes/field.html" with field=form.amount %}</div>
+                        <div class="col-sm-6">{% include "includes/field.html" with field=form.date %}</div>
+                    </div>
+                    {% include "includes/field.html" with field=form.paid_by %}
+                    {% include "includes/field.html" with field=form.split_mode %}
+
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="d-flex justify-content-between fw-semibold mb-2">
+                            <span>Za koho</span>
+                            <span id="value-header"></span>
+                        </div>
+
+                        {% for member, include, value in form.member_rows %}
+                            <div class="mb-2 member-row">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="form-check flex-grow-1 mb-0">
+                                        {{ include }}
+                                        <label class="form-check-label" for="{{ include.id_for_label }}">
+                                            {{ member.get_full_name|default:member.username }}
+                                        </label>
+                                    </div>
+                                    <div style="width: 130px;">{{ value }}</div>
+                                </div>
+                                {% for error in value.errors %}
+                                    <div class="text-danger small text-end">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="small text-muted mt-2" id="mode-hint"></div>
+                        <div class="small fw-semibold mt-1" id="sum-box"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <a href="{% url 'group_detail' group.pk %}" class="btn btn-link">Zrušit</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const form = document.getElementById("expense-form");
+    const mode = document.getElementById("id_split_mode");
+    const amount = document.getElementById("id_amount");
+    const rows = document.querySelectorAll(".member-row");
+    const header = document.getElementById("value-header");
+    const hint = document.getElementById("mode-hint");
+    const sumBox = document.getElementById("sum-box");
+
+    const labels = {equal: "", exact: "Částka", percent: "Procenta (%)", weight: "Váha"};
+    const hints = {
+        equal: "Částka se rozdělí rovným dílem mezi zaškrtnuté členy.",
+        exact: "Zadejte, kolik má každý zaplatit. Součet se musí rovnat celkové částce.",
+        percent: "Zadejte procenta. Součet musí být 100 %.",
+        weight: "Zadejte váhy (např. 2 dospělí = 2, dítě = 1). Částka se rozdělí v poměru vah."
+    };
+
+    function update() {
+        const m = mode.value;
+        header.textContent = labels[m];
+        hint.textContent = hints[m];
+        let sum = 0, count = 0;
+        rows.forEach(function (row) {
+            const include = row.querySelector(".include-input");
+            const value = row.querySelector(".value-input");
+            const show = m !== "equal" && include.checked;
+            value.classList.toggle("d-none", !show);
+            if (include.checked) count++;
+            if (show) sum += parseFloat(value.value) || 0;
+        });
+        if (m === "equal") {
+            sumBox.textContent = "Účastníků: " + count;
+        } else if (m === "exact") {
+            sumBox.textContent = "Součet: " + sum.toFixed(2) + " z " + (parseFloat(amount.value) || 0).toFixed(2);
+        } else if (m === "percent") {
+            sumBox.textContent = "Součet: " + sum.toFixed(2) + " % ze 100 %";
+        } else {
+            sumBox.textContent = "Součet vah: " + sum.toFixed(2);
+        }
+    }
+
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    update();
+})();
+</script>
+{% endblock %}

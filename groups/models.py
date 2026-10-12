@@ -47,6 +47,12 @@ class Group(models.Model):
         self.invite_token = uuid.uuid4()
         self.save(update_fields=["invite_token"])
 
+    def has_activity(self, user):
+        """Má uživatel ve skupině nějaké výdaje (zaplatil je nebo na nich dluží)?"""
+        return self.expenses.filter(
+            models.Q(paid_by=user) | models.Q(shares__user=user)
+        ).exists()
+
 
 class Membership(models.Model):
     class Role(models.TextChoices):

@@ -56,6 +56,8 @@ def group_detail(request, pk):
         "memberships": memberships,
         "invite_url": invite_url,
         "is_owner": group.is_owner(request.user),
+        "expenses": group.expenses.select_related("paid_by"),
+
     }
     return render(request, "groups/group_detail.html", context)
 
@@ -84,7 +86,10 @@ def group_leave(request, pk):
         messages.error(
             request, "Správce nemůže skupinu opustit. Můžete ji ale smazat."
         )
-        return redirect("group_detail", pk=group.pk)
+        return redirect("group_detail", pk=group.pk)  
+    if group.has_activity(request.user):
+        messages.error(request, "Skupinu nelze opustit, dokud máte ve skupině výdaje.")
+        return redirect("group_detail", pk=group.pk)    
     group.memberships.filter(user=request.user).delete()
     messages.success(request, f"Opustili jste skupinu „{group.name}“.")
     return redirect("group_list")
@@ -116,6 +121,8 @@ def member_remove(request, pk, membership_id):
     membership = get_object_or_404(group.memberships, pk=membership_id)
     if membership.user == request.user:
         messages.error(request, "Sami sebe odebrat nemůžete.")
+    elif group.has_activity(membership.user):
+        messages.error(request, "Tohoto člena nelze odebrat, protože má ve skupině výdaje.")
     else:
         membership.delete()
         messages.success(request, f"Uživatel {membership.user} byl odebrán.")

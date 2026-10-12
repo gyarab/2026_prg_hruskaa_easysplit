@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ expense.description }} – {{ group.name }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'group_detail' group.pk %}" class="small">← {{ group.name }}</a>
+
+<div class="card shadow-sm mt-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="h4 mb-1">{{ expense.description }}</h1>
+                <p class="text-muted mb-0">
+                    {{ expense.date|date:"j. n. Y" }} · zaplatil(a)
+                    <strong>{{ expense.paid_by.get_full_name|default:expense.paid_by.username }}</strong>
+                </p>
+            </div>
+            <div class="text-end">
+                <div class="h4 mb-1">{{ expense.amount }} {{ group.base_currency }}</div>
+                <span class="badge bg-secondary">{{ expense.get_split_mode_display }}</span>
+            </div>
+        </div>
+    </div>
+
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>Člen</th>
+                {% if expense.split_mode != "equal" %}<th class="text-end">Zadáno</th>{% endif %}
+                <th class="text-end">Dluží</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for share in shares %}
+                <tr>
+                    <td>{{ share.user.get_full_name|default:share.user.username }}</td>
+                    {% if expense.split_mode != "equal" %}
+                        <td class="text-end">{{ share.value }}{% if expense.split_mode == "percent" %} %{% endif %}</td>
+                    {% endif %}
+                    <td class="text-end">{{ share.amount }} {{ group.base_currency }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if can_edit %}
+        <div class="card-body d-flex gap-2">
+            <a href="{% url 'expense_edit' group.pk expense.pk %}" class="btn btn-outline-primary btn-sm">Upravit</a>
+            <form method="post" action="{% url 'expense_delete' group.pk expense.pk %}"
+                  onsubmit="return confirm('Opravdu smazat tento výdaj?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">Smazat</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
